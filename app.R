@@ -18,12 +18,6 @@ district_geo_l  <- district_geo %>%
 
 
 
-mytext <- paste(
-    "Schulgemeinde: ", district_geo_l$bezeichnun,"<br/>")  %>%
-    lapply(htmltools::HTML)
-
-
-
 
 # define theme ----
 mytheme <- theme_bw() +
@@ -70,6 +64,7 @@ ui <- dashboardPage( skin = "blue",
                         tabItem(tabName = "langauges_side",
                          fluidPage(
                              br(),
+                             actionButton("unselect_district","Unselect school districts"),
                              column(8,leafletOutput("map", height="600px")),
                              column(4,br(),br(),br(),br(),plotOutput("plot", height="300px")),
                              br()
@@ -100,33 +95,92 @@ server <- function(input, output) {
   
     
     
+    
+    
   # reactive Map for choosing district ----
   # codes from https://stackoverflow.com/questions/42798377/shiny-leaflet-ploygon-click-event and https://www.r-bloggers.com/2017/03/4-tricks-for-working-with-r-leaflet-and-shiny/
     
+
     # create a reactive value that will store the click position
     data_of_click <- reactiveValues(clickedMarker=NULL)
+  
+    # store the click, an highlight the clicked districts 
+    # used code from https://www.r-bloggers.com/2017/03/4-tricks-for-working-with-r-leaflet-and-shiny/ 
+    # https://gis.stackexchange.com/questions/215342/changing-the-style-of-a-polygon-with-a-click-event-in-a-shiny-leaflet-app
+    # https://stackoverflow.com/questions/41106547/how-to-save-click-events-in-leaflet-shiny-map#41106795
     
+    selected<-reactiveValues(Clicks=vector()) # creat a dataframe where clicks will be stored
     
-    # Leaflet map with districts
-    output$map <- renderLeaflet({
-        leaflet() %>% 
-            addTiles() %>% 
-            setView(lng = 8.5 ,lat =47.38, zoom = 12)%>%
-            addPolygons(data=district_geo_l, 
-                        layerId=~bezeichnun,
-                        fillColor = "transparent",
-                        highlight = highlightOptions(
-                            color = "darkblue",
-                            fillOpacity = 0.7,
-                            bringToFront = TRUE),
-                        label = mytext)
-    }) 
-    # store the click   https://www.r-bloggers.com/2017/03/4-tricks-for-working-with-r-leaflet-and-shiny/
     observeEvent(input$map_shape_click,{
-        data_of_click$clickedShape <- input$map_shape_click
+        selected$Clicks
+        click <- input$map_shape_click
+        selected$Clicks <-c(click$id, selected$Clicks) # selected$Clicks has to be added so that the dataframe select_dis has all selected districts in it
+        # print(selected$Clicks)  # print(select_dis())
+        
+        
     })
     
+  # creat a tibble with the selected school districts
+  select_dis <- reactive({district_geo_l %>%  filter(bezeichnun %in% selected$Clicks)}) 
+ 
+  
+  # clear function if the unselect district is used  
+  observeEvent(input$unselect_district, {
+      selected$Clicks <- NULL}
+    )
+  
+
+  # hovertext for the basemap
+  mytext <- paste(
+    "Schulgemeinde: ", district_geo_l$bezeichnun,"<br/>")  %>%
+    lapply(htmltools::HTML)
+  
+  # define map with districts
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      setView(lng = 8.5 ,lat =47.38, zoom = 12)%>%
+      addPolygons(data=district_geo_l,
+                  layerId=~bezeichnun,
+                  fillColor = "transparent",
+                  label = mytext)})
+
+  
+  
+  observe(
+  # if no district is choosen show defined map 
+  if(is.logical(selected$Clicks)){
+    leafletProxy("map")
+  }
+  # if clear button is used show again defined map
+  else if(is.null(selected$Clicks)){
+    leafletProxy("map") %>% 
+        setView(lng = 8.5 ,lat =47.38, zoom = 12)%>%
+        addPolygons(data=district_geo_l,
+                    layerId=~bezeichnun,
+                    fillColor = "transparent",
+                    label = mytext)
+  }
+  # if districts are clicked on fill them with blue
+  else{
+    mytext2 <- paste(
+      # hovertext when at least one district is selected
+      "Schulgemeinde: ", select_dis()$bezeichnun,"<br/>")  %>%
+      lapply(htmltools::HTML)
     
+    leafletProxy("map") %>% 
+      addPolygons(data = select_dis(),
+                  layerId = ~bezeichnun,
+                  fillColor = "blue",
+                  label = mytext2)
+  }
+  )
+  
+  # output$selected_var <- renderText({ 
+  #   paste(select_dis()$bezeichnun, sep=",")
+  # })
+  # 
+  # test output
     output$plot=renderPlot({
         my_place=data_of_click$clickedShape$id
         if(is.null(my_place)){my_place="Glattal"}
