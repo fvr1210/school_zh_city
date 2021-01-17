@@ -11,7 +11,7 @@ library(RColorBrewer)
 
 
 #* Geo data for Zurich city school districts ----
-district_geo <- read_sf("raw-data/geo_school_districts_zh_city/districts/stzh.adm_schulkreise_a_polygon.shp") 
+district_geo <- read_sf("geo-data/stzh.adm_schulkreise_a_polygon.shp") 
 
 # change swiss coordinate system to lat long
 district_geo_l  <- district_geo %>%  
@@ -61,14 +61,35 @@ df_sek_daz <- read_delim("processed-data/districts_sek_daz_students_acs.csv", de
 
 #* Info text
 
+info_text <-  read_file("processed-data/info_text.html", locale = locale(encoding = 'utf-8')) # text description for tab with all school levels
 
 
 
 # define theme ----
+# for "normal" plots
 mytheme <- theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, size = 9),
+    theme(plot.title = element_text(size = 15, face = "bold",  margin = margin(0, 0, .05, 0., "cm")),
+          axis.text.x = element_text(angle = 90, size = 15),
+          axis.text.y = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          axis.title.x = element_text(size = 15),
+          legend.text = element_text(size = 15),
           legend.title = element_blank(),
+          plot.caption = element_text(size = 14),
           legend.position = "bottom")
+
+# for facet wrap plots
+mytheme_facet <- theme_bw() +
+  theme(plot.title = element_text(size = 9, face = "bold",  margin = margin(0, 0, .05, 0., "cm")),
+        plot.subtitle = element_text(size = 7),
+        axis.text.x = element_text(angle = 90, size = 9),
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        axis.title.x = element_text(size = 9),
+        legend.text = element_text(size = 9),
+        legend.title = element_blank(),
+        plot.caption = element_text(size = 7),
+        legend.position = "bottom")
 
 # colors for districts -----    
 col_dis <- c( "Glattal" = "#d10070", "Letzi" = "#5D3D55", "Limmattal" = "#3F5C75", "Schwamendingen" = "#177972", "Uto" = "#548D51", "Waidberg" = "#A69439", "Zürichberg" = "#F48E5F") 
@@ -80,19 +101,16 @@ col_countries <- colorRampPalette(brewer.pal(8, "Set3"))(nb.cols)
 
 # Ui side -----
 ui <- dashboardPage(skin = "blue",
-                     dashboardHeader(title = "Schulboard", titleWidth = 300 # extend width because of the longer title
+                     dashboardHeader(title = "Schulboard", titleWidth = 320 # extend width because of the longer title
                      ),
                     
                     # sidebare ---------
                      dashboardSidebar( 
-                       width = 300,
+                       width = 320,
                        sidebarMenu(
-                         menuItem("Info", tabName = "Info_text", icon = icon("info")),
-                            #          menuSubItem("Intro", tabName = "Intro_tx", icon = icon("")),
-                            #          menuSubItem("Data Source", tabName = "Source_tx", icon = icon("")),
-                            #          menuSubItem("Final Data", tabName = "Final_tx", icon = icon(""))),
+                         menuItem("Info", tabName = "info_text", icon = icon("info")),
                          menuItem("Volksschulstufen aggregiert", tabName = "total", icon = icon("school")),    
-                         menuItem("Kindergarten und Primarschule", tabName = "unterstufe", icon = icon("child")), 
+                         menuItem("Kindergarten, Übergangsklassen, Primarschule", tabName = "unterstufe", icon = icon("child")), 
                          menuItem("Sekundarschule", tabName = "sek", icon = icon("book"))),
                          
                          tagList(                       # Aligne the checkboxes left; code from https://stackoverflow.com/questions/29738975/how-to-align-a-group-of-checkboxgroupinput-in-r-shiny
@@ -114,6 +132,15 @@ ui <- dashboardPage(skin = "blue",
                     margin-top: 10px;
                     margin-bottom: 15px;
                     }",
+                                         ".shiny-input-radiogroup{ 
+                    margin-left: 10;
+                    margin-top: -120px;
+                    margin-bottom: 15px;
+                    }",
+                                         ".shiny-input-container{ 
+                    margin-top: 00px;
+                    margin-bottom: 20px;
+                    }",
                                          ".shiny-options-group{ 
                     margin-left: 15px;
                     }",
@@ -124,7 +151,10 @@ ui <- dashboardPage(skin = "blue",
                     
                     ".shiny-output-error { visibility: hidden; }",         # not displaying errors on the dashboard
                                          
-                    ".shiny-output-error:before { visibility: hidden; }"  # not displaying errors on the dashboard
+                    ".shiny-output-error:before { visibility: hidden; }",  # not displaying errors on the dashboard
+                    "text {
+                      font-family: helvetica,arial,sans-serf;
+                    }"
                                      ))))         
                      ),
                      
@@ -133,6 +163,11 @@ ui <- dashboardPage(skin = "blue",
                      dashboardBody(
                        tabItems(
                       #* total ----
+                      #* 
+                      tabItem(tabName = "info_text",
+                              fluidPage(
+                              htmlOutput("info_text"))),
+                      
                       tabItem(tabName = "total",
                               
                               fluidPage(
@@ -144,27 +179,16 @@ ui <- dashboardPage(skin = "blue",
                                 br(),
                                 # map
                                 leafletOutput("map_t", height="480px", width="800px"),
-                                # Action button to unselect the choosen districts - not sure yet where to place it
+                                # Action button to unselect the choosen districts -
                                 actionButton("unselect_district_t","Schulkreis Auswahl aufheben"),
                                 br(),
                                 sliderInput(inputId="d_Jahr_t", label = 'Beobachtungszeitraum wählen:',
                                             min=min(df_t_daz$Jahr), max=max(df_t_daz$Jahr), value=c(min(df_t_daz$Jahr), max(df_t_daz$Jahr)), sep = ""),
-                                girafeOutput("plot_as_t", width = "100%", height = "400px"),
-                                girafeOutput("plot_daz_t", width = "100%", height = "400px"),
-                                # girafeOutput("plot_acs_t", width = "100%", height = "400px"), 
-                                girafeOutput("plot_dc_t", width = "100%", height = "400px"),
+                                girafeOutput("plot_as_t", width = "100%", height = "350px"),
+                                girafeOutput("plot_daz_t", width = "100%", height = "350px"),
+                                girafeOutput("plot_dc_t", width = "100%", height = "350px"),
                                 girafeOutput("plot_cs_t", width = "100%", height = "1000px"),
                                 
-                                #   htmlOutput("total_text")),
-                                # text for map
-                                # htmlOutput("choosing_u"),
-                                # # map
-                                # leafletOutput("map", height="480px", width="800px"),
-                                # # Action button to unselect the choosen districts - not sure yet where to place it
-                                # actionButton("unselect_district","Schulkreis Auswahl aufheben"),
-                                # # slider to select years on the sidebar
-                                # sliderInput(inputId="d_Jahr", label = 'Beobachtungszeitraum:',
-                                #             min=min(df_daz$Jahr), max=max(df_daz$Jahr), value=c(min(df_daz$Jahr), max(df_daz$Jahr)), sep = "")
                              )),
                               
                          
@@ -185,7 +209,7 @@ ui <- dashboardPage(skin = "blue",
                            sliderInput(inputId="d_Jahr_kp", label = 'Beobachtungszeitraum wählen:',
                                        min=min(df_t_daz$Jahr), max=max(df_t_daz$Jahr), value=c(min(df_t_daz$Jahr), max(df_t_daz$Jahr)), sep = ""),
                            girafeOutput("plot_kp_d", width = "100%", height = "800px"),
-                           radioButtons(inputId = "stufen_kp", label = "Schulstufen",
+                           radioButtons(inputId = "stufen_kp", label = "Schulstufen:",
                                               choices = c(
                                                 "Kindergarten",
                                                 "Übergangsklassen",
@@ -193,11 +217,9 @@ ui <- dashboardPage(skin = "blue",
                                               selected = c("Kindergarten"),
                                               inline = T
                            ),
-                           girafeOutput("plot_as_kp", width = "100%", height = "400px"),
-                           girafeOutput("plot_daz_kp", width = "100%", height = "400px"),
-                           # girafeOutput("plot_daz_t", width = "100%", height = "400px"),
-                           girafeOutput("plot_acs_kp", width = "100%", height = "400px"),
-                           # girafeOutput("plot_dc_t", width = "100%", height = "400px"),
+                           girafeOutput("plot_as_kp", width = "100%", height = "350px"),
+                           girafeOutput("plot_daz_kp", width = "100%", height = "350px"),
+                          
                            
                          )),
                         
@@ -218,7 +240,7 @@ ui <- dashboardPage(skin = "blue",
                                sliderInput(inputId="d_Jahr_sek", label = 'Beobachtungszeitraum wählen:',
                                            min=min(df_t_daz$Jahr), max=max(df_t_daz$Jahr), value=c(min(df_t_daz$Jahr), max(df_t_daz$Jahr)), sep = ""),
                                girafeOutput("plot_sek_d", width = "100%", height = "800px"),
-                               radioButtons(inputId = "stufen_sek", label = "Schulstufen",
+                               radioButtons(inputId = "stufen_sek", label = "Schulstufen:",
                                             choices = c(
                                               "Sekundarstufe A",
                                               "Sekundarstufe B",
@@ -226,11 +248,8 @@ ui <- dashboardPage(skin = "blue",
                                             selected = c("Sekundarstufe A"),
                                             inline = T
                                ),
-                               girafeOutput("plot_as_sek", width = "100%", height = "400px"),
-                               girafeOutput("plot_daz_sek", width = "100%", height = "400px"),
-                               # girafeOutput("plot_daz_t", width = "100%", height = "400px"),
-                               girafeOutput("plot_acs_sek", width = "100%", height = "400px"),
-                               # girafeOutput("plot_dc_t", width = "100%", height = "400px"),
+                               girafeOutput("plot_as_sek", width = "100%", height = "350px"),
+                               girafeOutput("plot_daz_sek", width = "100%", height = "350px"),
                                ))),
                     ),
                      )
@@ -238,6 +257,14 @@ ui <- dashboardPage(skin = "blue",
 
 
 server <- function(input, output) {
+  
+  
+# Info ----  
+#**************************************************************************************************************************************************************************************************************  
+  
+  #*  Text ----
+  # Introduction text 
+  output$info_text <- renderUI({HTML(info_text)})
 
 # Total ----  
 #**************************************************************************************************************************************************************************************************************  
@@ -245,7 +272,7 @@ server <- function(input, output) {
   # Introduction text 
   output$total_text <- renderUI({HTML(total_text)})
   # Choosing districts text
-  output$choosing_t <- renderUI({HTML("<h4>Wählen Sie auf den Karten die Schulkreise aus, die Sie interessieren. Das Laden der Daten braucht etwas Zeit.</h4>")})
+  output$choosing_t <- renderUI({HTML("<h4>Wähle auf den Karten die Schulkreise aus, die Sie interessieren. Das Laden der Daten braucht etwas Zeit.</h4>")})
   
   #* Map ----
   # reactive Map for choosing district 
@@ -371,7 +398,9 @@ server <- function(input, output) {
       ylab("") +
       ggtitle("Total Anzahl Schüler*innen Schulstufen Kindergarten-, Primar- und Sekundarstufe aggregiert (ohne Aufnahme- und Kleinklassen)") +
       guides(size = "none") +
+      labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
       mytheme
+    
     
     girafe(code=print(p_t_as), width_svg = 20)
   })
@@ -398,6 +427,7 @@ server <- function(input, output) {
       ylab("") +
       ggtitle("Anteil an Schüler*innen, die Deutsch als Zweitsprache haben (DaZ)") +
       guides(size = "none") +
+      labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
       mytheme
     
     girafe(code=print(p_daz_t), width_svg = 20)
@@ -434,7 +464,8 @@ server <- function(input, output) {
       scale_x_continuous(breaks = seq(j_t_min(), j_t_max(), 1),
                          limits = c(j_t_min()-1, j_t_max()+0.5)) +
       ylab("") +
-      ggtitle("Anzahl verschiedener Nationalitäten") +
+      ggtitle("Anzahl verschiedener Nationalitäten (keine Daten für 2019)") +
+      labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
       mytheme
     
     girafe(code=print(p_dc_t), width_svg = 20)
@@ -458,8 +489,11 @@ server <- function(input, output) {
       scale_x_continuous(breaks = seq(j_t_min(), j_t_max(), 1),
                          limits = c(j_t_min()-1, j_t_max()+0.5)) +
       facet_wrap(~Schulgemeinde) +
+      labs(title = 'Staatsangehörigkeiten der Schüler*innen',
+           subtitle = 'Länder die weniger als 2 Prozent ausmachen, sind in der Gruppe "Andere" zusammengefasst (keine Daten für 2019)',
+           caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
       ylab("") +
-      mytheme  
+      mytheme_facet  
     
     girafe(code=print(p_cs_t), width_svg = 10)
   })
@@ -482,7 +516,7 @@ server <- function(input, output) {
   # Introduction text 
   output$kp_text <- renderUI({HTML(kp_text)})
   # Choosing districts text
-  output$choosing_kp <- renderUI({HTML("<h4>Wählen Sie auf den Karten die Schulkreise aus, die Sie interessieren. Das Laden der Daten braucht etwas Zeit.</h4>")})
+  output$choosing_kp <- renderUI({HTML("<h4>Wähle auf den Karten die Schulkreise aus, die Sie interessieren. Das Laden der Daten braucht etwas Zeit.</h4>")})
   
   
 #* Map ----
@@ -607,7 +641,8 @@ server <- function(input, output) {
         facet_wrap(~Schulgemeinde) +
         ylab("") +
         ggtitle("Anteil Kindergarten, Übergangsklassen und Primarschule") +
-        mytheme  
+        labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
+        mytheme_facet  
       
       girafe(code=print(p_kp_d), width_svg = 10)
     })
@@ -636,6 +671,7 @@ server <- function(input, output) {
      
         ylab("") +
         ggtitle(paste("Total Anzahl Schüler*innen", input$stufen_kp, "(ohne Aufnahme- und Kleinklassen)")) +
+        labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
         guides(size = "none") +
         mytheme
       
@@ -662,6 +698,7 @@ server <- function(input, output) {
                            limits = c(j_kp_min(), j_kp_max())) +
         ylab("") +
         ggtitle(paste("Anteil Schüler*innen, die Deutsch als Zweitsprache haben (DaZ), auf der Schulstufe", input$stufen_kp)) +
+        labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
         guides(size = "none") +
         mytheme
       
@@ -680,6 +717,7 @@ server <- function(input, output) {
                            limits = c(j_kp_min()-1, j_kp_max()+0.5)) +
         ylab("") +
         ggtitle("Durchschnittliche Klassengrösse") +
+        labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
         mytheme
       
       girafe(code=print(p_acs_kp), width_svg = 20)
@@ -695,7 +733,7 @@ server <- function(input, output) {
     # Introduction text 
     output$sek_text <- renderUI({HTML(sek_text)})
     # Choosing districts text
-    output$choosing_sek <- renderUI({HTML("<h4>Wählen Sie auf den Karten die Schulkreise aus, die Sie interessieren. Das Laden der Daten braucht etwas Zeit.</h4>")})
+    output$choosing_sek <- renderUI({HTML("<h4>Wähle auf den Karten die Schulkreise aus, die Sie interessieren. Das Laden der Daten braucht etwas Zeit.</h4>")})
     
     #* Map ----
     
@@ -819,7 +857,8 @@ server <- function(input, output) {
         facet_wrap(~Schulgemeinde) +
         ylab("") +
         ggtitle("Anteil der verschiedenen Sekundarstufen") +
-        mytheme  
+        labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
+        mytheme_facet 
       
       girafe(code=print(p_sek_d), width_svg = 10)
     })
@@ -849,6 +888,7 @@ server <- function(input, output) {
         ylab("") +
         ggtitle(paste("Total Anzahl Schüler*innen", input$stufen_sek, "(ohne Aufnahme- und Kleinklassen)")) +
         guides(size = "none") +
+        labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
         mytheme
       
       girafe(code=print(p_sek_as), width_svg = 20)
@@ -875,6 +915,7 @@ server <- function(input, output) {
         ylab("") +
         ggtitle(paste("Anteil Schüler*innen, die Deutsch als Zweitsprache haben (DaZ), auf der Schulstufe", input$stufen_sek)) +
         guides(size = "none") +
+        labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
         mytheme
       
       girafe(code=print(p_daz_sek), width_svg = 20)
@@ -882,21 +923,22 @@ server <- function(input, output) {
     
     #** Average class size-----  
     
-    output$plot_acs_sek <-  renderGirafe ({
-      p_acs_sek <-  ggplot(daz_sek_reactive(), aes(x=Jahr, y=acs, fill=Schulgemeinde)) +
-        geom_col_interactive(aes(tooltip = paste("Schulkreis:", daz_sek_reactive()$Schulgemeinde, "\nDurchschnittliche Klassengrösse:", daz_sek_reactive()$acs)), position = position_dodge(width=0.9), width = 0.85, color=NA)+
-        scale_y_continuous() +
-        scale_fill_manual(values = col_dis) +
-        scale_x_continuous() +
-        scale_x_continuous(breaks = seq(j_sek_min(), j_sek_max(), 1),
-                           limits = c(j_sek_min()-1, j_sek_max()+0.5)) +
-        ylab("") +
-        ggtitle("Durchschnittliche Klassengrösse") +
-        mytheme
-      
-      girafe(code=print(p_acs_sek), width_svg = 20)
-    })
-    
+    # output$plot_acs_sek <-  renderGirafe ({
+    #   p_acs_sek <-  ggplot(daz_sek_reactive(), aes(x=Jahr, y=acs, fill=Schulgemeinde)) +
+    #     geom_col_interactive(aes(tooltip = paste("Schulkreis:", daz_sek_reactive()$Schulgemeinde, "\nDurchschnittliche Klassengrösse:", daz_sek_reactive()$acs)), position = position_dodge(width=0.9), width = 0.85, color=NA)+
+    #     scale_y_continuous() +
+    #     scale_fill_manual(values = col_dis) +
+    #     scale_x_continuous() +
+    #     scale_x_continuous(breaks = seq(j_sek_min(), j_sek_max(), 1),
+    #                        limits = c(j_sek_min()-1, j_sek_max()+0.5)) +
+    #     ylab("") +
+    #     ggtitle("Durchschnittliche Klassengrösse") +
+    #     labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
+    #     mytheme
+    #   
+    #   girafe(code=print(p_acs_sek), width_svg = 20)
+    # })
+    # 
     
   
 }

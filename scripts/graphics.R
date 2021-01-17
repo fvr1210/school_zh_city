@@ -3,6 +3,8 @@ library(treemapify)
 library(ggmap)
 library(sp)
 library(leaflet)
+library(lubridate)
+
 
 # using function for crating several plots https://stackoverflow.com/questions/51410553/generate-multiple-plots-from-generic-code-in-r
 example_plot <- function(x){
@@ -25,15 +27,38 @@ tree_plot <- function(x){
   geom_treemap() +
   geom_treemap_text(fontface = "italic", colour = "white", place = "centre", 
                     grow = TRUE)+
-    ggtitle(x$SG)
+    ggtitle(paste(x$SG)) # weiis noch nicht wie jahr reinnehmen
 }
 
 
 tree <- df_cl_cr %>% 
-  group_by(Schulgemeinde, Jahr) %>% 
+  mutate(Jahr2=Jahr) %>% 
+  group_by(Schulgemeinde, Jahr2) %>% 
   nest() %>% 
   mutate(graph = map(data, ~ tree_plot(.x))) %>% 
   pull(graph)
+
+df_test <- df_cl_cr[1:300,]
+
+df_test$country_g <- fct_reorder(df_test$country_g, -df_test$rank, max)
+
+df_test <- df_test %>% mutate(t2 = fct_reorder(country_g, rank, max))
+
+ggplot(df_test, aes(area = per_g, label = country_g, fill = country_g)) +
+  geom_treemap() +
+  facet_wrap( ~Jahr + Schulgemeinde) +
+  geom_treemap_text(fontface = "italic", colour = "white", place = "centre", 
+                    grow = TRUE) +
+  theme(legend.position = "none")
+  
+ggplot(arrange(df_test, rank), aes(x = Schulgemeinde, y=per_g, fill = country_g)) +
+  geom_col() + 
+  facet_wrap( ~Jahr) +
+  theme(legend.position = "none") + 
+  scale_fill_brewer(palette = "Blues")
+  
+
+
 
 # # trying to make an gif 
 # 
@@ -132,3 +157,13 @@ map1 <- leaflet() %>%
   # addMarkers(data = cords_di, ~X, ~Y, label = ~htmlEscape(NAME))
   # 
   # 
+
+
+ggplot(df_daz, aes(x=Jahr, y=DAZ, filter=Schulgemeinde))+
+  geom_col(position = position_dodge(width=0.9), width = 0.85)+
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  scale_x_continuous() +
+  ylab("Anteil DAZ Kinder")
+
+
+
