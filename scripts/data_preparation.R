@@ -92,11 +92,11 @@ df_sa_t_s <- df_sa %>%
   group_by(Jahr, Schulgemeinde) %>% 
   summarise(students = sum(alle)) 
 
-#* DAZ ratio ----
+#* esd ratio ----
 df_sa_t_d <- df_sa %>% 
   filter(Schulart!="Sonderschulen") %>% 
   group_by(Jahr, Schulgemeinde) %>% 
-  summarise(daz = sum(fspr)/sum(alle)) 
+  summarise(esd = (1- sum(fspr)/sum(alle))) 
 
 #* average class size -----
 df_sa_cs <- df_sa %>% 
@@ -113,7 +113,7 @@ df_sa_t <- df_sa_t_s %>%
   left_join(df_sa_t_d) %>%
   left_join(df_sa_cs) 
 
-write_delim(df_sa_t, "processed-data/districts_total_daz_students_acs.csv", delim = ";")
+write_delim(df_sa_t, "processed-data/districts_total_esd_students_acs.csv", delim = ";")
 
 #* citizenship ----
 df_cl_c <- df_cl %>%  
@@ -159,12 +159,12 @@ df_sa_kp_di <- df_sa %>%
   mutate(per = round((students/sum(students))*100,1))
 
 
-#* Daz ----
+#* esd ----
 df_sa_kp_d <- df_sa %>% 
   filter(Schulart!="Sonderschulen") %>%
   filter(Schulart %in% c("Kindergarten", "Übergangsklassen", "Primarschule")) %>% 
   group_by(Jahr, Schulgemeinde, Schulart) %>% 
-  summarise(daz = sum(fspr)/sum(alle)) 
+  summarise(esd = (1 - sum(fspr)/sum(alle))) 
 
 
 #* average class size ----
@@ -184,7 +184,7 @@ df_sa_kp <- df_sa_kp_di %>%
   left_join(df_sa_kp_d) %>%
   left_join(df_sa_kp_acs) 
 
-write_delim(df_sa_kp, "processed-data/districts_kinder_primar_daz_students_acs.csv", delim = ";")
+write_delim(df_sa_kp, "processed-data/districts_kinder_primar_esd_students_acs.csv", delim = ";")
 
 
 
@@ -205,12 +205,12 @@ df_sa_sek_di <- df_sa %>%
   mutate(per = round((students/sum(students))*100,1))
 
 
-#* Daz ----
+#* esd ----
 df_sa_sek_d <- df_sa %>% 
   filter(Schulart!="Sonderschulen") %>%
   filter(Bildungsart_2 %in% c("Sekundarstufe A", "Sekundarstufe B", "Sekundarstufe C")) %>% 
   group_by(Jahr, Schulgemeinde, Bildungsart_2) %>% 
-  summarise(daz = sum(fspr)/sum(alle)) 
+  summarise(esd = (1-sum(fspr)/sum(alle))) 
 
 
 #* average class size ----
@@ -230,7 +230,7 @@ df_sa_sek <- df_sa_sek_di %>%
   left_join(df_sa_sek_d) %>%
   left_join(df_sa_sek_acs) 
 
-write_delim(df_sa_sek, "processed-data/districts_sek_daz_students_acs.csv", delim = ";")
+write_delim(df_sa_sek, "processed-data/districts_sek_esd_students_acs.csv", delim = ";")
 
 # #* citizenship ----
 # df_cl_c_kg <- df_cl %>%  
@@ -277,14 +277,14 @@ write_delim(df_sa_sek, "processed-data/districts_sek_daz_students_acs.csv", deli
 #   group_by(Jahr, Schulgemeinde) %>% 
 #   mutate(rank = rank(-language_n, ties.method = "min"))
 # 
-# #* DAZ (Deutsch als Zweitsprache) 
-# df_daz <- df_cl_l %>% 
+# #* daf (Deutsch als Zweitsprache) 
+# df_daf <- df_cl_l %>% 
 #   filter(Erstsprache != "Deutsch") %>% 
 #   group_by(Jahr, Schulgemeinde) %>% 
-#   summarise(daz = sum(lang_per_n)) %>% 
+#   summarise(daf = sum(lang_per_n)) %>% 
 #   ungroup() 
 # 
-# write_delim(df_daz, "processed-data/districts_daz.csv", delim = ";")
+# write_delim(df_daf, "processed-data/districts_daf.csv", delim = ";")
 # 
 # 
 
@@ -303,7 +303,7 @@ write_delim(df_sa_sek, "processed-data/districts_sek_daz_students_acs.csv", deli
 # df_sa <- df_sa %>% 
 #   group_by(Jahr, Schulgemeinde) %>% 
 #   mutate(students_a = sum(alle)) %>%  # amount of students over all school types
-#   mutate(daz_a = sum(fspr)/sum(alle)) %>%  # ratio of daz students over all school types
+#   mutate(daf_a = sum(fspr)/sum(alle)) %>%  # ratio of daf students over all school types
 #   ungroup() %>% 
 #   group_by(Jahr, Schulgemeinde, Schulart) %>% 
 #   mutate(students_schulart = sum(alle)) %>%   # amount of students over schulart

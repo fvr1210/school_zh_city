@@ -19,8 +19,8 @@ district_geo_l  <- district_geo %>%
 
 #* Total Data ----
 #* Including all School levels
-#** Data to daz, amount of students and average class size ----
-df_t_daz <- read_delim("processed-data/districts_total_daz_students_acs.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
+#** Data to esd, amount of students and average class size ----
+df_t_dsa <- read_delim("processed-data/districts_total_esd_students_acs.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
 
 #** Data to citizienship----
 df_t_cs <- read_delim("processed-data/districts_total_citizenship.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
@@ -39,8 +39,8 @@ sek_text <-  read_file("processed-data/sek_text.html", locale = locale(encoding 
 
 #* Unterstufen Data ----
 #* Including Kindergarten, Uebergangsklassen and Primar
-#** Data to daz, amount of students and average class size ----
-df_kp_daz <- read_delim("processed-data/districts_kinder_primar_daz_students_acs.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
+#** Data to esd, amount of students and average class size ----
+df_kp_dsa <- read_delim("processed-data/districts_kinder_primar_esd_students_acs.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
 
 # #** Data to citizienship----
 # df_t_cs <- read_delim("processed-data/districts_citizenship.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
@@ -54,7 +54,7 @@ df_kp_daz <- read_delim("processed-data/districts_kinder_primar_daz_students_acs
 #* Sekundar Data ----
 #* Including Sek A, B, C
 #** Data to daz, amount of students and average class size ----
-df_sek_daz <- read_delim("processed-data/districts_sek_daz_students_acs.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
+df_sek_dsa <- read_delim("processed-data/districts_sek_esd_students_acs.csv", delim = ";", locale = locale(encoding = 'utf-8')) 
 
 
 
@@ -122,23 +122,15 @@ ui <- dashboardPage(skin = "blue",
                     margin-right: 10px;
                     }",
                                          
-                                         ".checkbox-inline {    
-                    margin-left: 10px;
-                    margin-right: 10px;
-                    }",
-                      
-                                         ".action-button{ 
-                    margin-left: 10px;
-                    margin-top: 10px;
-                    margin-bottom: 15px;
-                    }",
+                    
                                          ".shiny-input-radiogroup{ 
                     margin-left: 10;
                     margin-top: -120px;
                     margin-bottom: 15px;
                     }",
                                          ".shiny-input-container{ 
-                    margin-top: 00px;
+                    margin-top: 0px;
+                    margin-left: 0px;
                     margin-bottom: 20px;
                     }",
                                          ".shiny-options-group{ 
@@ -146,7 +138,7 @@ ui <- dashboardPage(skin = "blue",
                     }",
                                          
                                        ".control-label{ 
-                    margin-left: 15px;
+                    margin-left: 0px;
                     }",
                     
                     ".shiny-output-error { visibility: hidden; }",         # not displaying errors on the dashboard
@@ -179,13 +171,11 @@ ui <- dashboardPage(skin = "blue",
                                 br(),
                                 # map
                                 leafletOutput("map_t", height="480px", width="800px"),
-                                # Action button to unselect the choosen districts -
-                                actionButton("unselect_district_t","Schulkreis Auswahl aufheben"),
                                 br(),
                                 sliderInput(inputId="d_Jahr_t", label = 'Beobachtungszeitraum wählen:',
-                                            min=min(df_t_daz$Jahr), max=max(df_t_daz$Jahr), value=c(min(df_t_daz$Jahr), max(df_t_daz$Jahr)), sep = ""),
+                                            min=min(df_t_dsa$Jahr), max=max(df_t_dsa$Jahr), value=c(min(df_t_dsa$Jahr), max(df_t_dsa$Jahr)), sep = ""),
                                 girafeOutput("plot_as_t", width = "100%", height = "350px"),
-                                girafeOutput("plot_daz_t", width = "100%", height = "350px"),
+                                girafeOutput("plot_esd_t", width = "100%", height = "350px"),
                                 girafeOutput("plot_dc_t", width = "100%", height = "350px"),
                                 girafeOutput("plot_cs_t", width = "100%", height = "1000px"),
                                 
@@ -203,11 +193,9 @@ ui <- dashboardPage(skin = "blue",
                            br(),
                            # map
                            leafletOutput("map_kp", height="480px", width="800px"),
-                           # Action button to unselect the choosen districts - not sure yet where to place it
-                           actionButton("unselect_district_kp","Schulkreis Auswahl aufheben"),
                            br(),
                            sliderInput(inputId="d_Jahr_kp", label = 'Beobachtungszeitraum wählen:',
-                                       min=min(df_t_daz$Jahr), max=max(df_t_daz$Jahr), value=c(min(df_t_daz$Jahr), max(df_t_daz$Jahr)), sep = ""),
+                                       min=min(df_t_dsa$Jahr), max=max(df_t_dsa$Jahr), value=c(min(df_t_dsa$Jahr), max(df_t_dsa$Jahr)), sep = ""),
                            girafeOutput("plot_kp_d", width = "100%", height = "800px"),
                            radioButtons(inputId = "stufen_kp", label = "Schulstufen:",
                                               choices = c(
@@ -218,7 +206,8 @@ ui <- dashboardPage(skin = "blue",
                                               inline = T
                            ),
                            girafeOutput("plot_as_kp", width = "100%", height = "350px"),
-                           girafeOutput("plot_daz_kp", width = "100%", height = "350px"),
+                           girafeOutput("plot_acs_kp", width = "100%", height = "350px"),
+                           girafeOutput("plot_esd_kp", width = "100%", height = "350px"),
                           
                            
                          )),
@@ -234,11 +223,9 @@ ui <- dashboardPage(skin = "blue",
                                br(),
                                # map
                                leafletOutput("map_sek", height="480px", width="800px"),
-                               # Action button to unselect the choosen districts - not sure yet where to place it
-                               actionButton("unselect_district_sek","Schulkreis Auswahl aufheben"),
                                br(),
                                sliderInput(inputId="d_Jahr_sek", label = 'Beobachtungszeitraum wählen:',
-                                           min=min(df_t_daz$Jahr), max=max(df_t_daz$Jahr), value=c(min(df_t_daz$Jahr), max(df_t_daz$Jahr)), sep = ""),
+                                           min=min(df_t_dsa$Jahr), max=max(df_t_dsa$Jahr), value=c(min(df_t_dsa$Jahr), max(df_t_dsa$Jahr)), sep = ""),
                                girafeOutput("plot_sek_d", width = "100%", height = "800px"),
                                radioButtons(inputId = "stufen_sek", label = "Schulstufen:",
                                             choices = c(
@@ -249,7 +236,7 @@ ui <- dashboardPage(skin = "blue",
                                             inline = T
                                ),
                                girafeOutput("plot_as_sek", width = "100%", height = "350px"),
-                               girafeOutput("plot_daz_sek", width = "100%", height = "350px"),
+                               girafeOutput("plot_esd_sek", width = "100%", height = "350px"),
                                ))),
                     ),
                      )
@@ -315,7 +302,17 @@ server <- function(input, output) {
       addPolygons(data=district_geo_l,
                   layerId=~bezeichnun,
                   fillColor = "transparent",
-                  label = mytext)})
+                  label = mytext)%>% 
+      # delet button directli in map https://stackoverflow.com/questions/42290919/shiny-control-widgets-inside-leaflet-map
+      addControl(actionButton("unselect_district_t"," Schulkreis Auswahl löschen",
+                              style="color: #fff; 
+                                        background-color: #428bca; 
+                                        border-color: #428bca"), 
+                 position="topright", 
+                 className = "fieldset {
+                   border: 0;
+                   }"
+      )})
   
   
   # code which is used to unselect all selected clicks - this is made from different codes, sadly can't remember the different orgins 
@@ -352,9 +349,9 @@ server <- function(input, output) {
   #* data ----
   # reactive dataframes / tibbles based on the selected district and year 
   
-  # for students, daz and average class size
-  daz_t_reactive <- reactive({
-    dplyr::filter(df_t_daz, Schulgemeinde %in% select_dis_t()$bezeichnun & Jahr >= input$d_Jahr_t[1] & Jahr <= input$d_Jahr_t[2])
+  # for students, esd and average class size
+  dsa_t_reactive <- reactive({
+    dplyr::filter(df_t_dsa, Schulgemeinde %in% select_dis_t()$bezeichnun & Jahr >= input$d_Jahr_t[1] & Jahr <= input$d_Jahr_t[2])
   })
 
   # for citizienship 
@@ -370,11 +367,11 @@ server <- function(input, output) {
   
   # create max and min for scale
   # years
-  j_t_max <- reactive({max(daz_t_reactive()$Jahr)})
-  j_t_min <- reactive({min(daz_t_reactive()$Jahr)})
+  j_t_max <- reactive({max(dsa_t_reactive()$Jahr)})
+  j_t_min <- reactive({min(dsa_t_reactive()$Jahr)})
   
   #values
-  s_t_max <- reactive({max(daz_t_reactive()$students)})
+  s_t_max <- reactive({max(dsa_t_reactive()$students)})
   
   
   
@@ -384,12 +381,12 @@ server <- function(input, output) {
   #* Pint and Line plot
   output$plot_as_t <-  renderGirafe ({
     p_t_as <-  ggplot() +
-      geom_point_interactive(daz_t_reactive(), 
+      geom_point_interactive(dsa_t_reactive(), 
                              mapping = aes(x=Jahr, y=students, 
                                            color=factor(Schulgemeinde),
                                            size = 3,
-                                           tooltip = paste("Schulkreis:", daz_t_reactive()$Schulgemeinde, "\nAnzahl Schüler*innen:", daz_t_reactive()$students)))+
-      geom_line(daz_t_reactive(), 
+                                           tooltip = paste("Schulkreis:", dsa_t_reactive()$Schulgemeinde, "\nAnzahl Schüler*innen:", dsa_t_reactive()$students)))+
+      geom_line(dsa_t_reactive(), 
                 mapping = aes(x=Jahr, y=students, color = factor(Schulgemeinde))) +
       scale_color_manual(values = col_dis) +
       scale_y_continuous(expand = c(0, 0), limits = c(0, s_t_max()*1.1)) +
@@ -407,17 +404,17 @@ server <- function(input, output) {
   
   
   
-  #** DaZ ----
+  #** DaE ----
   # Point and Line
-  output$plot_daz_t <-  renderGirafe ({
-    p_daz_t <-  ggplot() +
-      geom_point_interactive(daz_t_reactive(), 
-                             mapping = aes(x=Jahr, y=daz, 
+  output$plot_esd_t <-  renderGirafe ({
+    p_esd_t <-  ggplot() +
+      geom_point_interactive(dsa_t_reactive(), 
+                             mapping = aes(x=Jahr, y=esd, 
                                            color=factor(Schulgemeinde),
                                            size = 3,
-                                           tooltip = paste("Schulkreis:", daz_t_reactive()$Schulgemeinde, "\nDaZ Anteil:", round(daz_t_reactive()$daz*100,2), "%")))+
-      geom_line(daz_t_reactive(), 
-                mapping = aes(x=Jahr, y=daz, color = factor(Schulgemeinde))) +
+                                           tooltip = paste("Schulkreis:", dsa_t_reactive()$Schulgemeinde, "\nDaE Anteil:", round(dsa_t_reactive()$esd*100,2), "%")))+
+      geom_line(dsa_t_reactive(), 
+                mapping = aes(x=Jahr, y=esd, color = factor(Schulgemeinde))) +
       scale_color_manual(values = col_dis) +
       scale_y_continuous(labels = function(x) paste0(x*100, "%"),
                          limits = c(0, 1)) +
@@ -425,12 +422,12 @@ server <- function(input, output) {
       scale_x_continuous(breaks = seq(j_t_min(), j_t_max(), 1),
                          limits = c(j_t_min(), j_t_max())) +
       ylab("") +
-      ggtitle("Anteil an Schüler*innen, die Deutsch als Zweitsprache haben (DaZ)") +
+      ggtitle("Anteil an Schüler*innen, die Deutsch als Erstsprache (DaE) haben") +
       guides(size = "none") +
       labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
       mytheme
     
-    girafe(code=print(p_daz_t), width_svg = 20)
+    girafe(code=print(p_esd_t), width_svg = 20)
   })
   
   #** Average class size-----  
@@ -549,11 +546,20 @@ server <- function(input, output) {
     output$map_kp <- renderLeaflet({
       leaflet() %>%
         addTiles() %>%
-        setView(lng = 8.52 ,lat =47.38, zoom = 12)%>%
+        setView(lng = 8.52 ,lat =47.38, zoom = 12) %>%
         addPolygons(data=district_geo_l,
                     layerId=~bezeichnun,
                     fillColor = "transparent",
-                    label = mytext)})
+                    label = mytext) %>% 
+        addControl(actionButton("unselect_district_kp"," Schulkreis Auswahl löschen",
+                                  style="color: #fff; 
+                                        background-color: #428bca; 
+                                        border-color: #428bca"), 
+                   position="topright", 
+                   className = "fieldset {
+                   border: 0;
+                   }"
+                  )})
     
     
     # code which is used to unselect all selected clicks - this is made from different codes, sadly can't remember the different orgins 
@@ -591,13 +597,13 @@ server <- function(input, output) {
     # reactive dataframes / tibbles based on the selected district and year 
     
     # for distribution 
-    daz_kp_d_reactive <- reactive({
-      dplyr::filter(df_kp_daz, Schulgemeinde %in% select_dis_kp()$bezeichnun & Jahr >= input$d_Jahr_kp[1] & Jahr <= input$d_Jahr_kp[2])
+    dsa_kp_d_reactive <- reactive({
+      dplyr::filter(df_kp_dsa, Schulgemeinde %in% select_dis_kp()$bezeichnun & Jahr >= input$d_Jahr_kp[1] & Jahr <= input$d_Jahr_kp[2])
     })
     
-    # for amount of students, daz and classsize
-    daz_kp_reactive <- reactive({
-      dplyr::filter(df_kp_daz, Schulgemeinde %in% select_dis_kp()$bezeichnun & Jahr >= input$d_Jahr_kp[1] & Jahr <= input$d_Jahr_kp[2] & Schulart %in% input$stufen_kp)
+    # for amount of students, esd and classsize
+    dsa_kp_reactive <- reactive({
+      dplyr::filter(df_kp_dsa, Schulgemeinde %in% select_dis_kp()$bezeichnun & Jahr >= input$d_Jahr_kp[1] & Jahr <= input$d_Jahr_kp[2] & Schulart %in% input$stufen_kp)
     })
     
 
@@ -614,11 +620,11 @@ server <- function(input, output) {
     # 
     # # create max and min for scale
     # # years
-    j_kp_max <- reactive({max(daz_kp_reactive()$Jahr)})
-    j_kp_min <- reactive({min(daz_kp_reactive()$Jahr)})
+    j_kp_max <- reactive({max(dsa_kp_reactive()$Jahr)})
+    j_kp_min <- reactive({min(dsa_kp_reactive()$Jahr)})
 
     # # #values
-    s_kp_max <- reactive({max(daz_kp_reactive()$students)})
+    s_kp_max <- reactive({max(dsa_kp_reactive()$students)})
     # 
     # 
     # 
@@ -627,12 +633,12 @@ server <- function(input, output) {
     #** distribution ----
     #*col plot
     output$plot_kp_d <-  renderGirafe ({
-      p_kp_d <-  daz_kp_d_reactive() %>% 
+      p_kp_d <-  dsa_kp_d_reactive() %>% 
         mutate(Schulart =  ordered(Schulart, levels = c("Kindergarten", "Übergangsklassen", "Primarschule"))) %>%  
         ggplot() +
         
         geom_col_interactive(aes(x = Jahr, y=per, fill = Schulart,
-                                 tooltip = paste("Schulstufe:", Schulart, "\nAnteil Schüler:", daz_kp_d_reactive()$per, "%"),)) +
+                                 tooltip = paste("Schulstufe:", Schulart, "\nAnteil Schüler:", dsa_kp_d_reactive()$per, "%"),)) +
         # scale_fill_manual(values = col_countries) +
         scale_y_continuous(labels = function(x) paste0(x, "%")) +
         scale_x_continuous() +
@@ -657,12 +663,12 @@ server <- function(input, output) {
     #* Pint and Line plot
     output$plot_as_kp <-  renderGirafe ({
       p_kp_as <-  ggplot() +
-       geom_point_interactive(daz_kp_reactive(), 
+       geom_point_interactive(dsa_kp_reactive(), 
                              mapping = aes(x=Jahr, y=students, 
                                            color=factor(Schulgemeinde),
                                            size = 3,
-                                           tooltip = paste("Schulkreis:", daz_kp_reactive()$Schulgemeinde, "\nAnzahl Schüler*innen:", daz_kp_reactive()$students)))+
-        geom_line(daz_kp_reactive(), 
+                                           tooltip = paste("Schulkreis:", dsa_kp_reactive()$Schulgemeinde, "\nAnzahl Schüler*innen:", dsa_kp_reactive()$students)))+
+        geom_line(dsa_kp_reactive(), 
                   mapping = aes(x=Jahr, y=students, color = factor(Schulgemeinde))) +
         scale_color_manual(values = col_dis) +
         scale_y_continuous(expand = c(0, 0), limits = c(0, s_kp_max()*1.1)) +
@@ -679,17 +685,17 @@ server <- function(input, output) {
     })
     
     
-    #** DaZ ----
+    #** DaE ----
     # Point and Line
-    output$plot_daz_kp <-  renderGirafe ({
-      p_daz_kp <-  ggplot() +
-        geom_point_interactive(daz_kp_reactive(), 
-                               mapping = aes(x=Jahr, y=daz, 
+    output$plot_esd_kp <-  renderGirafe ({
+      p_esd_kp <-  ggplot() +
+        geom_point_interactive(dsa_kp_reactive(), 
+                               mapping = aes(x=Jahr, y=esd, 
                                              color=factor(Schulgemeinde),
                                              size = 3,
-                                             tooltip = paste("Schulkreis:", daz_kp_reactive()$Schulgemeinde, "\nDaZ Anteil:", round(daz_kp_reactive()$daz*100,2), "%")))+
-        geom_line(daz_kp_reactive(), 
-                  mapping = aes(x=Jahr, y=daz, color = factor(Schulgemeinde))) +
+                                             tooltip = paste("Schulkreis:", dsa_kp_reactive()$Schulgemeinde, "\nDaE Anteil:", round(dsa_kp_reactive()$esd*100,2), "%")))+
+        geom_line(dsa_kp_reactive(), 
+                  mapping = aes(x=Jahr, y=esd, color = factor(Schulgemeinde))) +
         scale_color_manual(values = col_dis) +
         scale_y_continuous(labels = function(x) paste0(x*100, "%"),
                            limits = c(0, 1)) +
@@ -697,19 +703,19 @@ server <- function(input, output) {
         scale_x_continuous(breaks = seq(j_kp_min(), j_kp_max(), 1),
                            limits = c(j_kp_min(), j_kp_max())) +
         ylab("") +
-        ggtitle(paste("Anteil Schüler*innen, die Deutsch als Zweitsprache haben (DaZ), auf der Schulstufe", input$stufen_kp)) +
+        ggtitle(paste("Anteil Schüler*innen, die Deutsch als Erstsprache (DaE) haben, auf der Schulstufe", input$stufen_kp)) +
         labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
         guides(size = "none") +
         mytheme
       
-      girafe(code=print(p_daz_kp), width_svg = 20)
+      girafe(code=print(p_esd_kp), width_svg = 20)
     })
     
     #** Average class size-----  
     
     output$plot_acs_kp <-  renderGirafe ({
-      p_acs_kp <-  ggplot(daz_kp_reactive(), aes(x=Jahr, y=acs, fill=Schulgemeinde)) +
-        geom_col_interactive(aes(tooltip = paste("Schulkreis:", daz_kp_reactive()$Schulgemeinde, "\nDurchschnittliche Klassengrösse:", daz_kp_reactive()$acs)), position = position_dodge(width=0.9), width = 0.85, color=NA)+
+      p_acs_kp <-  ggplot(dsa_kp_reactive(), aes(x=Jahr, y=acs, fill=Schulgemeinde)) +
+        geom_col_interactive(aes(tooltip = paste("Schulkreis:", dsa_kp_reactive()$Schulgemeinde, "\nDurchschnittliche Klassengrösse:", dsa_kp_reactive()$acs)), position = position_dodge(width=0.9), width = 0.85, color=NA)+
         scale_y_continuous() +
         scale_fill_manual(values = col_dis) +
         scale_x_continuous() +
@@ -769,7 +775,16 @@ server <- function(input, output) {
         addPolygons(data=district_geo_l,
                     layerId=~bezeichnun,
                     fillColor = "transparent",
-                    label = mytext)})
+                    label = mytext)%>% 
+        addControl(actionButton("unselect_district_sek"," Schulkreis Auswahl löschen",
+                                style="color: #fff; 
+                                        background-color: #428bca; 
+                                        border-color: #428bca"), 
+                   position="topright", 
+                   className = "fieldset {
+                   border: 0;
+                   }"
+        )})
     
     
     # code which is used to unselect all selected clicks - this is made from different codes, sadly can't remember the different orgins 
@@ -807,13 +822,13 @@ server <- function(input, output) {
     # reactive dataframes / tibbles based on the selected district and year 
     
     # for distribution 
-    daz_sek_d_reactive <- reactive({
-      dplyr::filter(df_sek_daz, Schulgemeinde %in% select_dis_sek()$bezeichnun & Jahr >= input$d_Jahr_sek[1] & Jahr <= input$d_Jahr_sek[2])
+    dsa_sek_d_reactive <- reactive({
+      dplyr::filter(df_sek_dsa, Schulgemeinde %in% select_dis_sek()$bezeichnun & Jahr >= input$d_Jahr_sek[1] & Jahr <= input$d_Jahr_sek[2])
     })
     
-    # for amount of students, daz and classsize
-    daz_sek_reactive <- reactive({
-      dplyr::filter(df_sek_daz, Schulgemeinde %in% select_dis_sek()$bezeichnun & Jahr >= input$d_Jahr_sek[1] & Jahr <= input$d_Jahr_sek[2] & Bildungsart_2 %in% input$stufen_sek)
+    # for amount of students, esd and classsize
+    dsa_sek_reactive <- reactive({
+      dplyr::filter(df_sek_dsa, Schulgemeinde %in% select_dis_sek()$bezeichnun & Jahr >= input$d_Jahr_sek[1] & Jahr <= input$d_Jahr_sek[2] & Bildungsart_2 %in% input$stufen_sek)
     })
     
     
@@ -830,11 +845,11 @@ server <- function(input, output) {
     # 
     # # create max and min for scale
     # # years
-    j_sek_max <- reactive({max(daz_sek_reactive()$Jahr)})
-    j_sek_min <- reactive({min(daz_sek_reactive()$Jahr)})
+    j_sek_max <- reactive({max(dsa_sek_reactive()$Jahr)})
+    j_sek_min <- reactive({min(dsa_sek_reactive()$Jahr)})
     
     # # #values
-    s_sek_max <- reactive({max(daz_sek_reactive()$students)})
+    s_sek_max <- reactive({max(dsa_sek_reactive()$students)})
     # 
     # 
     # 
@@ -843,12 +858,12 @@ server <- function(input, output) {
     #** distribution ----
     #*col plot
     output$plot_sek_d <-  renderGirafe ({
-      p_sek_d <-  daz_sek_d_reactive() %>% 
+      p_sek_d <-  dsa_sek_d_reactive() %>% 
         mutate(Bildungsart_2 =  ordered(Bildungsart_2, levels = c("Sekundarstufe A", "Sekundarstufe B", "Sekundarstufe C"))) %>%  
         ggplot() +
         
         geom_col_interactive(aes(x = Jahr, y=per, fill = Bildungsart_2,
-                                 tooltip = paste("Schulstufe:", Bildungsart_2, "\nAnteil Schüler:", daz_sek_d_reactive()$per, "%"),)) +
+                                 tooltip = paste("Schulstufe:", Bildungsart_2, "\nAnteil Schüler:", dsa_sek_d_reactive()$per, "%"),)) +
         # scale_fill_manual(values = col_countries) +
         scale_y_continuous(labels = function(x) paste0(x, "%")) +
         scale_x_continuous() +
@@ -865,20 +880,17 @@ server <- function(input, output) {
     
     
     
-    
-    
-    
-    
+
     #** Amount of Students-----
     #* Pint and Line plot
     output$plot_as_sek <-  renderGirafe ({
       p_sek_as <-  ggplot() +
-        geom_point_interactive(daz_sek_reactive(), 
+        geom_point_interactive(dsa_sek_reactive(), 
                                mapping = aes(x=Jahr, y=students, 
                                              color=factor(Schulgemeinde),
                                              size = 3,
-                                             tooltip = paste("Schulkreis:", daz_sek_reactive()$Schulgemeinde, "\nAnzahl Schüler*innen:", daz_sek_reactive()$students)))+
-        geom_line(daz_sek_reactive(), 
+                                             tooltip = paste("Schulkreis:", dsa_sek_reactive()$Schulgemeinde, "\nAnzahl Schüler*innen:", dsa_sek_reactive()$students)))+
+        geom_line(dsa_sek_reactive(), 
                   mapping = aes(x=Jahr, y=students, color = factor(Schulgemeinde))) +
         scale_color_manual(values = col_dis) +
         scale_y_continuous(expand = c(0, 0), limits = c(0, s_sek_max()*1.1)) +
@@ -895,17 +907,17 @@ server <- function(input, output) {
     })
     
     
-    #** DaZ ----
+    #** DaE ----
     # Point and Line
-    output$plot_daz_sek <-  renderGirafe ({
-      p_daz_sek <-  ggplot() +
-        geom_point_interactive(daz_sek_reactive(), 
-                               mapping = aes(x=Jahr, y=daz, 
+    output$plot_esd_sek <-  renderGirafe ({
+      p_esd_sek <-  ggplot() +
+        geom_point_interactive(dsa_sek_reactive(), 
+                               mapping = aes(x=Jahr, y=esd, 
                                              color=factor(Schulgemeinde),
                                              size = 3,
-                                             tooltip = paste("Schulkreis:", daz_sek_reactive()$Schulgemeinde, "\nDaZ Anteil:", round(daz_sek_reactive()$daz*100,2), "%")))+
-        geom_line(daz_sek_reactive(), 
-                  mapping = aes(x=Jahr, y=daz, color = factor(Schulgemeinde))) +
+                                             tooltip = paste("Schulkreis:", dsa_sek_reactive()$Schulgemeinde, "\nDaE Anteil:", round(dsa_sek_reactive()$esd*100,2), "%")))+
+        geom_line(dsa_sek_reactive(), 
+                  mapping = aes(x=Jahr, y=esd, color = factor(Schulgemeinde))) +
         scale_color_manual(values = col_dis) +
         scale_y_continuous(labels = function(x) paste0(x*100, "%"),
                            limits = c(0, 1)) +
@@ -913,12 +925,12 @@ server <- function(input, output) {
         scale_x_continuous(breaks = seq(j_sek_min(), j_sek_max(), 1),
                            limits = c(j_sek_min(), j_sek_max())) +
         ylab("") +
-        ggtitle(paste("Anteil Schüler*innen, die Deutsch als Zweitsprache haben (DaZ), auf der Schulstufe", input$stufen_sek)) +
+        ggtitle(paste("Anteil Schüler*innen, die Deutsch als Erstsprache (DaE) haben, auf der Schulstufe", input$stufen_sek)) +
         guides(size = "none") +
         labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
         mytheme
       
-      girafe(code=print(p_daz_sek), width_svg = 20)
+      girafe(code=print(p_esd_sek), width_svg = 20)
     })
     
     #** Average class size-----  
