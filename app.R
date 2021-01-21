@@ -140,7 +140,7 @@ ui <- dashboardPage(skin = "blue",
                     
                                          ".shiny-input-radiogroup{ 
                     margin-left: 10;
-                    margin-top: -120px;
+                    margin-top: -500px;
                     margin-bottom: 15px;
                     }",
                                          ".shiny-input-container{ 
