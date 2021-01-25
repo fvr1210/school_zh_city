@@ -136,18 +136,17 @@ ui <- dashboardPage(skin = "blue",
                     margin-left: 10px;
                     margin-right: 10px;
                     }",
-                                         
-                    
-                                         ".shiny-input-radiogroup{ 
-                    margin-left: 10;
-                    margin-top: -500px;
-                    margin-bottom: 15px;
-                    }",
                                          ".shiny-input-container{ 
-                    margin-top: 0px;
                     margin-left: 0px;
                     margin-bottom: 20px;
                     }",
+                                         
+                    
+                                         ".shiny-input-radiogroup{ 
+                    margin-top: -200px;
+                    margin-bottom: 20px;
+                    }",
+                   
                                          ".shiny-options-group{ 
                     margin-left: 15px;
                     }",
@@ -405,7 +404,7 @@ server <- function(input, output) {
       scale_x_continuous(breaks = seq(j_t_min(), j_t_max(), 1),
                          limits = c(j_t_min()-1, j_t_max()+0.5)) +
       ylab("") +
-      ggtitle("Anzahl verschiedener Nationalitäten (ohne Aufnahme- und Kleinklassen, keine Daten für 2019)") +
+      ggtitle("Anzahl verschiedener Nationalitäten (ohne Aufnahme- und Kleinklassen, 2000 wurden die Daten weniger detailliert erhoben, keine Daten für 2019)") +
       labs(caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
       mytheme
     
@@ -431,7 +430,7 @@ server <- function(input, output) {
                          limits = c(j_t_min()-1, j_t_max()+0.5)) +
       facet_wrap(~Schulgemeinde) +
       labs(title = 'Staatsangehörigkeiten der Schüler*innen',
-           subtitle = 'Länder die weniger als 2 Prozent ausmachen, sind in der Gruppe "Andere" zusammengefasst (keine Daten für 2019)',
+           subtitle = 'Länder die weniger als 2 Prozent ausmachen, sind in der Gruppe "Andere" zusammengefasst (2000 wurden die Daten weniger detailliert erhoben, keine Daten für 2019)',
            caption = "Daten: Bildungsstatistik Zürich, bearbeite durch Flavio von Rickenbach, Grafik: Flavio von Rickenbach, CC-BY 4.0") +
       ylab("") +
       mytheme_facet  
